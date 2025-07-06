@@ -1,13 +1,22 @@
 from django.http import JsonResponse, HttpResponse
 from django.shortcuts import render
 from .forms import BookingForm
-from .models import Menu
 from django.core import serializers
 from .models import Booking
 from datetime import datetime
 import json
 from django.views.decorators.csrf import csrf_exempt
 from django.http import HttpResponse
+from django.shortcuts import render
+from django.contrib.auth.models import User
+from rest_framework import views, viewsets, generics
+from rest_framework.response import Response
+from rest_framework.permissions import IsAuthenticated
+
+
+from .models import Menu, Booking
+from .serializer import MenuSerializer, BookingSerializer, UserSerializer
+from .permissions import IsAdmin, IsManager, IsCustomer, ReadOnly
 
 
 # Create your views here.
@@ -32,9 +41,6 @@ def book(request):
     context = {'form':form}
     return render(request, 'book.html', context)
 
-
-
-# Add your code here to create new views
 def menu(request):
     menu_data = Menu.objects.all()
     main_data = {"menu": menu_data}
@@ -47,6 +53,36 @@ def display_menu_item(request, pk=None):
     else: 
         menu_item = "" 
     return render(request, 'menu_item.html', {"menu_item": menu_item}) 
+
+
+class MenuViewSet(viewsets.ModelViewSet):
+    queryset = Menu.objects.all()
+    serializer_class = MenuSerializer
+
+    def get_permissions(self):
+        if self.request.method == "GET":
+            permission_classes = [IsAuthenticated]
+        else:
+            permission_classes = [IsAdmin | IsManager]
+        return [permission() for permission in permission_classes]
+
+
+class BookingViewSet(viewsets.ModelViewSet):
+    permission_classes = [IsAuthenticated]
+    queryset = Booking.objects.all()
+    serializer_class = BookingSerializer
+    def get_permissions(self):
+        if self.request.method in ["GET","POST"]:
+            permission_classes = [IsAuthenticated]
+        else:
+            permission_classes = [IsAdmin | IsManager]
+        return [permission() for permission in permission_classes]
+
+
+class UserViewSet(viewsets.ModelViewSet):
+    permission_classes = [IsAdmin]
+    queryset = User.objects.all()
+    serializer_class = UserSerializer            
 
 @csrf_exempt
 def bookings(request):

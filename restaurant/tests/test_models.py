@@ -1,7 +1,13 @@
 from django.test import TestCase
-from restaurant.models import Menu
+from restaurant.models import Menu 
+from restaurant.models import Booking
 
-class MenuItemTest(TestCase):
-    def test_get_item(self):
-        item = Menu.objects.create(title="IceCream", price=80, inventory=100)
-        self.assertEqual(str(item), "IceCream : 80")
+class MenuTest(TestCase):
+  def test_menu(self):
+    menu = Menu.objects.create(name='Pizza', price=8, description='very nice')
+    self.assertEqual(str(menu), 'Pizza')
+
+class BookingTest(TestCase):
+  def test_booking(self):
+    booking = Booking.objects.create(first_name = 'Leon')
+    self.assertEqual(str(Booking),'Leon')
